@@ -20,5 +20,3 @@ setwd(here())
 
 ## Read in data
 data <- read_ipums_ddi("filename")
-
-123
