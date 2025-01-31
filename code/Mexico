@@ -149,3 +149,31 @@ ggplot(df, aes(x = URBAN)) +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"))
 ```
+## Logistic Regression（No Grouping, General）
+
+```{r, include=TRUE}
+model1 <- glm(HLTHCOV ~ EDUCMX, data = df, family = binomial)
+
+summary(model1) 
+```
+
+## Logistic Regression（Contain control variable）
+
+```{r, including income variable}
+df <- df %>% mutate(log_INCEARN = log(INCEARN + 1)) 
+model_with_income <- glm(HLTHCOV ~ EDUCMX + log_INCEARN + SEX + AGE + URBAN, 
+                             data = df, family = binomial)
+
+summary(model_with_income)
+```
+
+```{r, do not control income variable}
+model_without_income <- glm(HLTHCOV ~ EDUCMX + SEX + AGE + URBAN, 
+                            data = df, family = binomial)
+
+summary(model_without_income)
+```
+
+
+
+
