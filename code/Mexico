@@ -1,0 +1,59 @@
+---
+title: "Mexico"
+output: html_document
+date: "2025-01-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Packages
+
+This code checks if packages are installed. It installs any missing packages, and then loads all needed packages. Include this at the beginning of any R code you write -- you just need to edit the list of packages at the top!
+
+Note that \`c("x","y")' is just creating a vector with the elements x and y!
+
+```{r, include=TRUE, results='hide'}
+packages <- c("dplyr", "ggplot2", "broom", "tidyr","srvyr", "survey", "ipumsr",  "here", "car", "kableExtra", "modelsummary")
+package.check <- lapply(
+  packages,
+  FUN = function(x) {
+    if (!require(x, character.only = TRUE)) {
+      install.packages(x, dependencies = TRUE)
+      library(x, character.only = TRUE)
+    }
+  }
+)
+```
+## Load Data
+
+```{r, include=FALSE}
+# Set working directory
+setwd(here())
+```
+
+```{r, include=TRUE}
+# Load data
+ddi <- read_ipums_ddi("~/OneDrive - Imperial College London/IC/Health Analytics/ipumsi_00002.xml")
+data <- read_ipums_micro(ddi)
+```
+## Select Data
+
+```{r, include=TRUE}
+# Select data
+selected_vars <- c("HLTHCOV", "EDUCMX", "INCEARN", "URBAN", "SEX", "AGE")
+df <- data %>% select(all_of(selected_vars))
+
+# View data summary
+summary(df)
+```
+## Clean Data
+
+```{r, include=TRUE}
+# Check the missing values in each column
+colSums(is.na(df))
+
+# Delete rows with missing values
+df_clean <- na.omit(df)
+```
