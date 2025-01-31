@@ -94,3 +94,39 @@ df$URBAN <- factor(df$URBAN, levels = c("Rural", "Urban"))
 # Check
 table(df$URBAN)
 ```
+## Description Stat
+
+```{r, include=TRUE}
+# Health insurance coverage distribution
+library(scales)
+
+ggplot(df, aes(x = factor(HLTHCOV))) +
+  geom_bar(fill = "red") +
+  geom_text(stat = "count", aes(label = scales::comma(after_stat(count))), vjust = -0.5, size = 5) +  
+  labs(title = "Health Insurance Coverage Distribution",
+       x = "Health Insurance (0 = No, 1 = Yes)", y = "Count") +
+  scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.1))) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"))
+
+# Education level distribution
+ggplot(df, aes(x = EDUCMX)) +
+  geom_bar(fill = "green") +
+  geom_text(stat = "count", aes(label = scales::comma(after_stat(count))), vjust = -0.5, size = 5) +  
+  labs(title = "Education Level Distribution",
+       x = "Education Level", y = "Count") +
+  scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.1))) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"))
+  
+
+# Urban vs Rural distribution
+ggplot(df, aes(x = URBAN)) +
+  geom_bar(fill = "blue") +
+   geom_text(stat = "count", aes(label = scales::comma(after_stat(count))), vjust = -0.5, size = 5) +  
+  labs(title = "Urban vs. Rural Distribution",
+       x = "Residence Type", y = "Count") +
+  scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.1))) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"))
+```
