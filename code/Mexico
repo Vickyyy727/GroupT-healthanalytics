@@ -138,7 +138,6 @@ ggplot(df, aes(x = EDUCMX)) +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"))
   
-
 # Urban vs Rural distribution
 ggplot(df, aes(x = URBAN)) +
   geom_bar(fill = "blue") +
@@ -149,6 +148,7 @@ ggplot(df, aes(x = URBAN)) +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"))
 ```
+
 ## Logistic Regression（No Grouping, General）
 
 ```{r, include=TRUE}
