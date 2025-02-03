@@ -4,7 +4,7 @@ Outline for Introduction to Health Analytics student group project
 ## Description of data
 In this section you should describe what data you use for your project with enough detail that anyone could download it and run your analysis.
 - **IPUMS series**: We use the IPUMS International Census Data, which provides standardized individual-level information from various national censuses. This dataset is well-suited for our analysis of health insurance coverage and education levels in Mexico.
-- **Countries**: We use the IPUMS International Census Data, which provides standardized individual-level information from various national censuses. This dataset is well-suited for our analysis of health insurance coverage and education levels in Mexico.
+- **Countries**: As mentioned in the previous question, the main country studied by our group is Mexico's data.
 - **Years**: We include data from the 2010 and 2015 Mexican census. These years were selected to provide a comparative analysis of health insurance coverage and education levels before and after certain policy changes in the country.
 - **How to access the data**: The data can be accessed from IPUMS International at the following link:
 https://international.ipums.org/international/
