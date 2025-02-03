@@ -26,11 +26,16 @@ To obtain the data, follow these steps:
  
 3.	Select the relevant variables, which include:
 	•	Health Insurance Coverage (HLTHCOV) – Binary variable (1 = insured, 0 = not insured).
-	•	Education Level (EDUCMX) – Level of education completed.
-	•	Income (INCEARN) – Proxy for economic status.
-	•	Age (AGE) – Continuous variable.
-	•	Sex (SEX) – Binary gender variable.
-	•	Urban/Rural Residence (URBAN) – Categorical variable for heterogeneity analysis.
+	
+        •	Education Level (EDUCMX) – Level of education completed.
+	
+        •	Income (INCEARN) – Proxy for economic status.
+	
+        •	Age (AGE) – Continuous variable.
+	
+        •	Sex (SEX) – Binary gender variable.
+	
+        •	Urban/Rural Residence (URBAN) – Categorical variable for heterogeneity analysis.
 	
  4.	Download the dataset in a compatible format.
 
