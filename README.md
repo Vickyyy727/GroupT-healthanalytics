@@ -25,17 +25,18 @@ To obtain the data, follow these steps:
 2.	Request access to the Mexican census data for the years 2010 and 2015.
  
 3.	Select the relevant variables, which include:
-	•	Health Insurance Coverage (HLTHCOV) – Binary variable (1 = insured, 0 = not insured).
+
+        •	Health Insurance Coverage (HLTHCOV) – Binary variable (1 = insured, 0 = not insured) 
 	
-        •	Education Level (EDUCMX) – Level of education completed.
+        •	Education Level (EDUCMX) – Level of education completed
 	
-        •	Income (INCEARN) – Proxy for economic status.
+        •	Income (INCEARN) – Proxy for economic status
 	
-        •	Age (AGE) – Continuous variable.
+        •	Age (AGE) – Continuous variable
 	
-        •	Sex (SEX) – Binary gender variable.
+        •	Sex (SEX) – Binary gender variable
 	
-        •	Urban/Rural Residence (URBAN) – Categorical variable for heterogeneity analysis.
+        •	Urban/Rural Residence (URBAN) – Categorical variable for heterogeneity analysis
 	
  4.	Download the dataset in a compatible format.
 
