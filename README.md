@@ -17,7 +17,8 @@ To obtain the data, follow these steps:
 3.	Select the relevant variables, which include:
 
         •	Health Insurance Coverage (HLTHCOV) – Binary variable (1 = insured, 0 = not insured) 
-	
+	      ##initially, HLTHCOV reports whether the person had medical insurance/coverage from a public or private institution, or a combination thereof, for the Mexico samples. In the regression, we convert it into binary.
+
         •	Education Level (EDUCMX) – Level of education completed
 	
         •	Income (INCEARN) – Proxy for economic status
