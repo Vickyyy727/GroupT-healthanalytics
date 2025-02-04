@@ -439,3 +439,58 @@ p <- ggplot(edu_results, aes(x = term, y = estimate, color = group)) +
 
 print(p)
 ```
+## Predicted probability
+
+```{r}
+
+# Create predicted data
+df$EDUCMX <- factor(df$EDUCMX,
+                    levels = c("No Education", "Primary", "Secondary", "Higher Education"))
+df$URBAN <- factor(df$URBAN,
+                   levels = c("Rural", "Urban"))
+
+predict_data <- expand.grid(
+  EDUCMX = levels(df$EDUCMX), 
+  URBAN = levels(df$URBAN),   
+  SEX = 1,                   
+  AGE = mean(df$AGE, na.rm = TRUE),  
+  log_INCEARN = mean(df$log_INCEARN, na.rm = TRUE) 
+)
+
+# Align with factor levels in df
+predict_data$EDUCMX <- factor(predict_data$EDUCMX, 
+                              levels = c("No Education", "Primary", "Secondary","Higher Education")) 
+predict_data$URBAN  <- factor(predict_data$URBAN,  levels = levels(df$URBAN))
+
+# Predict probabilities with models
+predict_data$predicted_prob <- predict(
+  model_with_income, 
+  newdata = predict_data, 
+  type    = "response"
+)
+
+print(predict_data)
+
+# Draw plot
+
+predict_data <- predict_data %>%
+  arrange(EDUCMX, URBAN)
+
+ggplot(predict_data, aes(x = EDUCMX, y = predicted_prob, color = URBAN, group = URBAN)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 3) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +  
+  labs(
+    title    = "Predicted Probability of Health Insurance Coverage",
+    subtitle = "Urban vs. Rural Comparison",
+    x        = "Education Level",
+    y        = "Predicted Probability",
+    color    = "Residence Type"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title      = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle   = element_text(hjust = 0.5, size = 12, face = "italic")
+  )
+
+```
