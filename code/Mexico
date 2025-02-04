@@ -389,3 +389,53 @@ ggplot(coverage_summary, aes(x = EDUCMX, y = coverage_rate, color = URBAN, group
     plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic")
   ) 
 ```
+## Visualization - Log odds
+
+```{r, LogOddsVisual}
+# Select regression results
+urban_results <- tidy(urban_model) %>% filter(grepl("EDUCMX", term))
+rural_results <- tidy(rural_model) %>% filter(grepl("EDUCMX", term))
+
+# Add grouping labels
+urban_results$group <- "Urban"
+rural_results$group <- "Rural"
+
+# Combine results
+edu_results <- bind_rows(urban_results, rural_results)
+
+# Draw plot
+theme_set(theme_gray())
+theme_update(legend.box.just = "center")
+
+
+p <- ggplot(edu_results, aes(x = term, y = estimate, color = group)) +
+  geom_point(
+    size = 3,
+    position = position_dodge(width = 0.5)
+  ) +
+  geom_errorbar(
+    aes(
+      ymin = estimate - 1.96 * std.error,
+      ymax = estimate + 1.96 * std.error
+    ),
+    width = 0.2,
+    position = position_dodge(width = 0.5)
+  ) +
+  labs(
+    title = "Effect of Education Level on Health Insurance Coverage",
+    subtitle = "Heterogeneity Analysis of Urban and Rural Groups",
+    x = "Education Level",
+    y = "Log Odds Estimate",
+    color = "Residence Type"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic") 
+  ) +
+  scale_x_discrete(
+    labels = c("Primary", "Secondary","Higher Education")
+  ) +
+  scale_color_manual(values = c("Urban" = "royalblue", "Rural" = "orange"))
+
+print(p)
+```
