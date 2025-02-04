@@ -53,6 +53,15 @@ summary(df)
 ## Clean Data
 
 ```{r, include=TRUE}
+# Filtering outliers
+df <- df %>%
+  filter(
+    AGE > 0 & AGE < 100,                        
+    INCEARN < 99999998 & INCEARN > 0,         
+    EDUCMX > 0 & EDUCMX < 800                  
+  ) 
+ summary(df)
+
 # Check the missing values in each column
 colSums(is.na(df))
 
@@ -116,37 +125,90 @@ table(df$EDUCMX)
 ## Description Stat
 
 ```{r, include=TRUE}
-# Health insurance coverage distribution
-library(scales)
+# 1. Means and standard deviations of AGE and INCEARN
+df_cont_summary <- df %>%
+  summarise(
+    mean_age     = mean(AGE, na.rm = TRUE),
+    sd_age       = sd(AGE, na.rm = TRUE),
+    mean_income = mean(INCEARN, na.rm = TRUE),
+    sd_income   = sd(INCEARN, na.rm = TRUE)
+  )
 
-ggplot(df, aes(x = factor(HLTHCOV))) +
+df_cont_summary
+
+# 2. Frequency and percentage of HLTHCOV, EDUCMX, URBAN, SEX
+df_cat_summary <- df %>%
+  select(HLTHCOV, EDUCMX, URBAN, SEX) %>%
+  gather(variable, value) %>%  # gather results
+  group_by(variable, value) %>%
+  summarise(
+    freq = n()
+  ) %>%
+  ungroup() %>%
+  group_by(variable) %>%
+  mutate(
+    prop = freq / sum(freq) # Calculate the percentage of the category under a variable
+  ) %>%
+  arrange(variable, value)
+
+df_cat_summary
+```
+```{r, visualisation}
+# Visualisation of HLTHCOV, EDUCMX, URBAN
+library(scales)
+library(patchwork)
+
+p1 <- ggplot(df, aes(x = factor(HLTHCOV))) +
   geom_bar(fill = "red") +
-  geom_text(stat = "count", aes(label = scales::comma(after_stat(count))), vjust = -0.5, size = 5) +  
+  geom_text(stat = "count", aes(label = scales::comma(after_stat(count))),
+            vjust = -0.5, size = 2) +  
   labs(title = "Health Insurance Coverage Distribution",
        x = "Health Insurance (0 = No, 1 = Yes)", y = "Count") +
   scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.1))) +
   theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"))
+  theme(plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+        axis.text.x = element_text(size = 8),
+        axis.title  = element_text(size = 8)
+        )
 
-# Education level distribution
-ggplot(df, aes(x = EDUCMX)) +
+p2 <- ggplot(df, aes(x = EDUCMX)) +
   geom_bar(fill = "green") +
-  geom_text(stat = "count", aes(label = scales::comma(after_stat(count))), vjust = -0.5, size = 5) +  
-  labs(title = "Education Level Distribution",
-       x = "Education Level", y = "Count") +
-  scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.1))) +
+  geom_text(stat = "count", aes(label = comma(after_stat(count))),
+            vjust = -0.5, size = 2) +
+  labs(title = "Education Level") +
+  scale_y_continuous(labels = comma, expand = expansion(mult = c(0, 0.1))) +
   theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"))
-  
-# Urban vs Rural distribution
-ggplot(df, aes(x = URBAN)) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+    axis.text.x = element_text(size = 8, angle = 45, hjust = 1),
+    axis.title  = element_text(size = 8)
+  )
+
+p3 <- ggplot(df, aes(x = URBAN)) +
   geom_bar(fill = "blue") +
-   geom_text(stat = "count", aes(label = scales::comma(after_stat(count))), vjust = -0.5, size = 5) +  
-  labs(title = "Urban vs. Rural Distribution",
-       x = "Residence Type", y = "Count") +
-  scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.1))) +
+  geom_text(stat = "count", aes(label = comma(after_stat(count))),
+            vjust = -0.5, size = 2) +
+  labs(title = "Urban vs. Rural") +
+  scale_y_continuous(labels = comma, expand = expansion(mult = c(0, 0.1))) +
   theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"))
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+    axis.text.x = element_text(size = 8),
+    axis.title  = element_text(size = 8)
+  )
+
+# Consolidation of the three figures
+combined_plot <- (p1 + p2 + p3) + 
+  plot_layout(ncol = 3) +
+  plot_annotation(
+    title = "Distributions of Key Variables",
+    theme = theme(
+      plot.title = element_text(size = 14, face = "bold", hjust = 0.5)
+    )
+  )
+
+combined_plot
+
 ```
 
 ## Logistic Regression（No Grouping, General）
