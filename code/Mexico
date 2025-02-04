@@ -368,7 +368,7 @@ ggplot(coverage_summary, aes(x = EDUCMX, y = URBAN, fill = coverage_rate)) +
   ) +
 scale_fill_gradientn(colors = c("#D5E0D5", "#BFD1B2",
                                 "#799A64", "#425539"),
-                     breaks = seq(min_coverage, max_coverage, by = 0.01),
+                     breaks = seq(min_coverage, max_coverage, by = 0.02),
                      limits = c(min_coverage, max_coverage),
                      labels = scales::label_number(accuracy = 0.01))
 
