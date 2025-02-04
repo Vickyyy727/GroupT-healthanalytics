@@ -235,7 +235,39 @@ model_without_income <- glm(HLTHCOV ~ EDUCMX + SEX + AGE + URBAN,
 
 summary(model_without_income)
 ```
+```{r, Mediation Analysis}
 
+library(mediation)
+
+# Conversion of educational variables to numeric variables
+df$EDUCMX <- factor(df$EDUCMX, 
+                    levels = c("No Education","Primary","Secondary","Higher Education"),
+                    ordered = TRUE)
+
+df <- df %>% mutate(edu_numeric = as.numeric(EDUCMX)) # Exclusion of unknown and NIU incomes
+
+# Take a sample from the dataset (to reduce computation and avoid running out of memory)
+set.seed(123)
+sample_df <- df %>% sample_n(100000)
+
+# Fitting the mediator model (predict log_INCEARN)
+med.fit <- lm(log_INCEARN ~ edu_numeric + SEX + AGE + URBAN, data = sample_df)
+summary(med.fit)
+
+# Fitted Outcome Models (Predict HLTHCOV)
+out.fit <- glm(HLTHCOV ~log_INCEARN + edu_numeric + SEX + AGE + URBAN, 
+               data = sample_df, family = binomial(link = "logit"))
+summary(out.fit)
+
+# Mediation Analysis
+set.seed(123) # Set random seed
+med.out <- mediate(med.fit, out.fit, treat = "edu_numeric", mediator = "log_INCEARN", sims = 500)
+summary(med.out)
+
+# Visualization
+plot(med.out)
+
+```
 
 
 
