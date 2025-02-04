@@ -341,3 +341,35 @@ interaction_model <- bigglm(HLTHCOV ~ EDUCMX * URBAN + log_INCEARN + SEX + AGE, 
 summary(interaction_model)
 ```
 
+## Visualization - Heat Map
+
+```{r}
+
+# Insurance coverage of two groups
+coverage_summary <- df %>%
+group_by(EDUCMX, URBAN) %>%
+summarise(coverage_rate = mean(HLTHCOV, na.rm = TRUE))
+
+# Calculate min and max coverage
+min_coverage <- min(coverage_summary$coverage_rate, na.rm = TRUE)
+max_coverage <- max(coverage_summary$coverage_rate, na.rm = TRUE)
+
+# Draw heat map
+
+ggplot(coverage_summary, aes(x = EDUCMX, y = URBAN, fill = coverage_rate)) +
+  geom_tile() +
+  labs(title = "Effect of Education Level on Health Insurance Coverage",
+       subtitle = "Heterogeneity Analysis of Urban and Rural Groups",
+       x = "Education Level", y = "Residence Type", fill = "Coverage Probability") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic")
+  ) +
+scale_fill_gradientn(colors = c("#D5E0D5", "#BFD1B2",
+                                "#799A64", "#425539"),
+                     breaks = seq(min_coverage, max_coverage, by = 0.01),
+                     limits = c(min_coverage, max_coverage),
+                     labels = scales::label_number(accuracy = 0.01))
+
+```
