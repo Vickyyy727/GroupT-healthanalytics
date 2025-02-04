@@ -286,5 +286,48 @@ rural_model <- glm(HLTHCOV ~ EDUCMX + log_INCEARN + SEX + AGE,
 
 summary(rural_model)
 ```
+```{r}
+options(scipen = -10)
+# Extract the coefficients associated with EDUCMX
+urban_coef <- coef(summary(urban_model))
+rural_coef <- coef(summary(rural_model))
+
+urban_educ_coef <- urban_coef[grep("EDUCMX", rownames(urban_coef)), ]
+rural_educ_coef <- rural_coef[grep("EDUCMX", rownames(rural_coef)), ]
+
+# Ensure consistency in coefficient names
+common_names <- intersect(rownames(urban_educ_coef), rownames(rural_educ_coef))
+
+# Initialization result storage
+results <- data.frame(
+  Coefficient = character(0),
+  Z_Value = numeric(0),
+  P_Value = numeric(0),
+  stringsAsFactors = FALSE
+)
+
+# Iterate over each coefficient name and compute the z-value and p-value
+for (name in common_names) {
+  coef_urban <- urban_educ_coef[name, "Estimate"]
+  se_urban <- urban_educ_coef[name, "Std. Error"]
+  
+  coef_rural <- rural_educ_coef[name, "Estimate"]
+  se_rural <- rural_educ_coef[name, "Std. Error"]
+  
+  # z Tests
+  z <- (coef_urban - coef_rural) / sqrt(se_urban^2 + se_rural^2)
+  p_value <- 2 * (1 - pnorm(abs(z)))  # double-sided test
+  
+  # Store Results
+  results <- rbind(results, data.frame(
+    Coefficient = name,
+    Z_Value = z,
+    P_Value = p_value
+  ))
+}
+
+# print results
+print(results)
+```
 
 
