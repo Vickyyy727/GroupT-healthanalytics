@@ -279,4 +279,12 @@ urban_model <- glm(HLTHCOV ~ EDUCMX + log_INCEARN + SEX + AGE,
 summary(urban_model)
 ```
 
+```{r, Rural samples - Logistic Regression}
+rural_model <- glm(HLTHCOV ~ EDUCMX + log_INCEARN + SEX + AGE, 
+                   data = df %>% filter(URBAN == "Rural"), 
+                   family = binomial)
+
+summary(rural_model)
+```
+
 
