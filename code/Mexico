@@ -373,3 +373,19 @@ scale_fill_gradientn(colors = c("#D5E0D5", "#BFD1B2",
                      labels = scales::label_number(accuracy = 0.01))
 
 ```
+## Visualization - Line Plot
+
+```{r, include=TRUE}
+# Draw line plot
+ggplot(coverage_summary, aes(x = EDUCMX, y = coverage_rate, color = URBAN, group = URBAN)) +
+  geom_line(size = 1) +
+  geom_point(size = 3) +
+  labs(title = "Effect of Education Level on Health Insurance Coverage",
+       subtitle = "Heterogeneity Analysis of Urban and Rural Groups",,
+       x = "Education Level", y = "Coverage Probability", color = "Residence Type") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic")
+  ) 
+```
