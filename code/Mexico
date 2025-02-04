@@ -268,6 +268,9 @@ summary(med.out)
 plot(med.out)
 
 ```
+# Heterogeneity Analysis
+## 1. Subgrouping - urban/rural
+
 ```{r, Urban samples - Logistic Regression}
 df$EDUCMX <- factor(df$EDUCMX, 
                     levels = c("No Education", "Primary", "Secondary", "Higher Education"),
@@ -329,5 +332,12 @@ for (name in common_names) {
 # print results
 print(results)
 ```
+## 2. Interaction
 
+```{r}
+library(biglm)
+interaction_model <- bigglm(HLTHCOV ~ EDUCMX * URBAN + log_INCEARN + SEX + AGE, data = df, family = binomial())
+
+summary(interaction_model)
+```
 
