@@ -331,6 +331,12 @@ for (name in common_names) {
 
 # print results
 print(results)
+results <- results %>%
+  mutate(across(where(is.numeric), ~ round(.x, 5)))  # discard four, but treat five as whole (of decimal points)
+
+# Generate HTML output
+stargazer(results, type = "html", summary = FALSE, title = "Z-Test Results",
+          digits = 5, out = "z_test_results.html")
 ```
 ## 2. Interaction
 
