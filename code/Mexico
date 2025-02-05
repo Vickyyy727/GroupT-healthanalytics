@@ -15,7 +15,7 @@ This code checks if packages are installed. It installs any missing packages, an
 Note that \`c("x","y")' is just creating a vector with the elements x and y!
 
 ```{r, include=TRUE, results='hide'}
-packages <- c("dplyr", "ggplot2", "broom", "tidyr","srvyr", "survey", "ipumsr",  "here", "car", "kableExtra", "modelsummary")
+packages <- c("dplyr", "ggplot2", "broom", "tidyr","srvyr", "survey", "ipumsr",  "here", "car", "kableExtra", "modelsummary","stargazer","officer","flextable")
 package.check <- lapply(
   packages,
   FUN = function(x) {
