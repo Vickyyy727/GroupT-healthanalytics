@@ -122,16 +122,19 @@ df$EDUCMX <- factor(df$EDUCMX, levels = c("No Education", "Primary", "Secondary"
 table(df$EDUCMX)
 ```
 
-## Description Stat
+## Descriptive Statistics
 
 ```{r, include=TRUE}
+library(webshot2)
+library(gt)
+library(scales)
 # 1. Means and standard deviations of AGE and INCEARN
 df_cont_summary <- df %>%
   summarise(
-    mean_age     = mean(AGE, na.rm = TRUE),
-    sd_age       = sd(AGE, na.rm = TRUE),
-    mean_income = mean(INCEARN, na.rm = TRUE),
-    sd_income   = sd(INCEARN, na.rm = TRUE)
+    mean_age     = round(mean(AGE, na.rm = TRUE), 2),
+    sd_age       = round(sd(AGE, na.rm = TRUE), 2),
+    mean_income  = round(mean(INCEARN, na.rm = TRUE), 2), 
+    sd_income    = round(sd(INCEARN, na.rm = TRUE), 2)     
   )
 
 df_cont_summary
@@ -147,15 +150,26 @@ df_cat_summary <- df %>%
   ungroup() %>%
   group_by(variable) %>%
   mutate(
-    prop = freq / sum(freq) # Calculate the percentage of the category under a variable
+    prop = freq / sum(freq), # Calculate the percentage of the category under a variable
+    prop_percent = percent(prop, accuracy = 0.01) 
   ) %>%
   arrange(variable, value)
 
 df_cat_summary
+
+# Save continuous summary as an image
+df_cont_summary %>%
+  gt() %>%
+  gtsave("continuous_summary.png")
+
+# Save categorical summary as an image
+df_cat_summary %>%
+  gt() %>%
+  gtsave("categorical_summary.png")
+
 ```
 ```{r, visualisation}
 # Visualisation of HLTHCOV, EDUCMX, URBAN
-library(scales)
 library(patchwork)
 
 p1 <- ggplot(df, aes(x = factor(HLTHCOV))) +
@@ -214,19 +228,24 @@ combined_plot
 ## Logistic Regression（No Grouping, General）
 
 ```{r, include=TRUE}
+
+library(stargazer)
 model1 <- glm(HLTHCOV ~ EDUCMX, data = df, family = binomial)
 
 summary(model1) 
+stargazer(model1, type = "html", out = "general_model_results.html") 
 ```
 
 ## Logistic Regression（Contain control variable）
 
 ```{r, including income variable}
+
 df <- df %>% mutate(log_INCEARN = log(INCEARN + 1)) 
 model_with_income <- glm(HLTHCOV ~ EDUCMX + log_INCEARN + SEX + AGE + URBAN, 
                              data = df, family = binomial)
 
 summary(model_with_income)
+stargazer(model_with_income, type = "html", out = "With_income_results.html") 
 ```
 
 ```{r, do not control income variable}
@@ -234,7 +253,9 @@ model_without_income <- glm(HLTHCOV ~ EDUCMX + SEX + AGE + URBAN,
                             data = df, family = binomial)
 
 summary(model_without_income)
+stargazer(model_without_income, type = "html", out = "without_model_results.html") 
 ```
+
 ```{r, Mediation Analysis}
 
 library(mediation)
@@ -264,10 +285,59 @@ set.seed(123) # Set random seed
 med.out <- mediate(med.fit, out.fit, treat = "edu_numeric", mediator = "log_INCEARN", sims = 500)
 summary(med.out)
 
+# Extract mediation analysis results
+med_summary <- summary(med.out)
+
+term_mapping <- list(
+  "ACME (control)" = list(estimate = "d0", ci = "d0.ci", p = "d0.p"),
+  "ACME (treated)" = list(estimate = "d1", ci = "d1.ci", p = "d1.p"),
+  "ADE (control)" = list(estimate = "z0", ci = "z0.ci", p = "z0.p"),
+  "ADE (treated)" = list(estimate = "z1", ci = "z1.ci", p = "z1.p"),
+  "Total Effect" = list(estimate = "tau.coef", ci = "tau.ci", p = "tau.p"),
+  "Prop. Mediated (control)" = list(estimate = "n0", ci = "n0.ci", p = "n0.p"),
+  "Prop. Mediated (treated)" = list(estimate = "n1", ci = "n1.ci", p = "n1.p"),
+  "ACME (average)" = list(estimate = "d.avg", ci = "d.avg.ci", p = "d.avg.p"),
+  "ADE (average)" = list(estimate = "z.avg", ci = "z.avg.ci", p = "z.avg.p"),
+  "Prop. Mediated (average)" = list(estimate = "n.avg", ci = "n.avg.ci", p = "n.avg.p")
+)
+
+# Generate results
+results <- lapply(names(term_mapping), function(term) {
+  field <- term_mapping[[term]]
+  if (!is.null(med_summary[[field$estimate]])) {
+    data.frame(
+      Term = term,
+      Estimate = round(med_summary[[field$estimate]], 4),  
+      CI_95 = paste0("[", round(med_summary[[field$ci]][1], 4), ", ", round(med_summary[[field$ci]][2], 4), "]"),
+      p_value = ifelse(med_summary[[field$p]] < 0.001, "<0.001", round(med_summary[[field$p]], 3))
+    )
+  } else {
+    cat("Field", field$estimate, "for", term, "is NULL or missing.\n")
+    NULL
+  }
+})
+
+# Combine results and remove NULL
+results <- do.call(rbind, results[!sapply(results, is.null)])
+
+print(results)
+
+# Load gridExtra
+library(gridExtra)
+
+# Create plot
+table_plot <- tableGrob(results, theme = ttheme_minimal())
+
+# Save as jpeg
+jpeg("mediation_results.jpeg", width = 1000, height = 600, quality = 100) 
+grid.draw(table_plot)                                                 
+dev.off()                                                               
+
 # Visualization
 plot(med.out)
 
 ```
+
 # Heterogeneity Analysis
 ## 1. Subgrouping - urban/rural
 
@@ -280,6 +350,7 @@ urban_model <- glm(HLTHCOV ~ EDUCMX + log_INCEARN + SEX + AGE,
                    family = binomial)
 
 summary(urban_model)
+stargazer(urban_model, type = "html", out = "urban_model.html") 
 ```
 
 ```{r, Rural samples - Logistic Regression}
@@ -288,9 +359,10 @@ rural_model <- glm(HLTHCOV ~ EDUCMX + log_INCEARN + SEX + AGE,
                    family = binomial)
 
 summary(rural_model)
+stargazer(rural_model, type = "html", out = "rural_model.html") 
 ```
+
 ```{r}
-options(scipen = -10)
 # Extract the coefficients associated with EDUCMX
 urban_coef <- coef(summary(urban_model))
 rural_coef <- coef(summary(rural_model))
@@ -332,19 +404,42 @@ for (name in common_names) {
 # print results
 print(results)
 results <- results %>%
-  mutate(across(where(is.numeric), ~ round(.x, 5)))  # discard four, but treat five as whole (of decimal points)
+  mutate(across(where(is.numeric), ~ round(.x, 4))) 
 
 # Generate HTML output
 stargazer(results, type = "html", summary = FALSE, title = "Z-Test Results",
-          digits = 5, out = "z_test_results.html")
+          digits = 4, out = "z_test_results.html")
 ```
+
 ## 2. Interaction
 
 ```{r}
-library(biglm)
+library(bigglm)
+
 interaction_model <- bigglm(HLTHCOV ~ EDUCMX * URBAN + log_INCEARN + SEX + AGE, data = df, family = binomial())
 
 summary(interaction_model)
+
+# Extract results
+interaction_results <- tidy(interaction_model)
+
+print(interaction_results)
+
+# Format the results
+interaction_results_formatted <- interaction_results %>%
+  mutate(
+    estimate = round(estimate, 4),              
+    std.error = round(std.error, 4),  
+    p.value = ifelse(p.value < 0.001, "<0.001", round(p.value, 3))
+  )
+
+# Create the plot
+table_plot <- tableGrob(interaction_results_formatted, theme = ttheme_minimal())
+
+# Save as jpeg
+jpeg("interaction_results.jpeg", width = 1000, height = 600, quality = 100) 
+grid.draw(table_plot)                                                 
+dev.off()                                        
 ```
 
 ## Visualization - Heat Map
@@ -395,108 +490,52 @@ ggplot(coverage_summary, aes(x = EDUCMX, y = coverage_rate, color = URBAN, group
     plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic")
   ) 
 ```
-## Visualization - Log odds
 
-```{r, LogOddsVisual}
-# Select regression results
-urban_results <- tidy(urban_model) %>% filter(grepl("EDUCMX", term))
-rural_results <- tidy(rural_model) %>% filter(grepl("EDUCMX", term))
-
-# Add grouping labels
-urban_results$group <- "Urban"
-rural_results$group <- "Rural"
-
-# Combine results
-edu_results <- bind_rows(urban_results, rural_results)
-
-# Draw plot
-theme_set(theme_gray())
-theme_update(legend.box.just = "center")
-
-
-p <- ggplot(edu_results, aes(x = term, y = estimate, color = group)) +
-  geom_point(
-    size = 3,
-    position = position_dodge(width = 0.5)
-  ) +
-  geom_errorbar(
-    aes(
-      ymin = estimate - 1.96 * std.error,
-      ymax = estimate + 1.96 * std.error
-    ),
-    width = 0.2,
-    position = position_dodge(width = 0.5)
-  ) +
-  labs(
-    title = "Effect of Education Level on Health Insurance Coverage",
-    subtitle = "Heterogeneity Analysis of Urban and Rural Groups",
-    x = "Education Level",
-    y = "Log Odds Estimate",
-    color = "Residence Type"
-  ) +
-  theme(
-    plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
-    plot.subtitle = element_text(hjust = 0.5, size = 12, face = "italic") 
-  ) +
-  scale_x_discrete(
-    labels = c("Primary", "Secondary","Higher Education")
-  ) +
-  scale_color_manual(values = c("Urban" = "royalblue", "Rural" = "orange"))
-
-print(p)
-```
 ## Predicted probability
 
 ```{r}
+# Re-fit the model
+model <- glm(HLTHCOV ~ EDUCMX * URBAN + log_INCEARN + SEX + AGE, 
+             data = df, 
+             family = binomial())
 
-# Create predicted data
-df$EDUCMX <- factor(df$EDUCMX,
-                    levels = c("No Education", "Primary", "Secondary", "Higher Education"))
-df$URBAN <- factor(df$URBAN,
-                   levels = c("Rural", "Urban"))
-
-predict_data <- expand.grid(
-  EDUCMX = levels(df$EDUCMX), 
-  URBAN = levels(df$URBAN),   
-  SEX = 1,                   
-  AGE = mean(df$AGE, na.rm = TRUE),  
-  log_INCEARN = mean(df$log_INCEARN, na.rm = TRUE) 
+# Creat a Predictive Dataset
+new_data <- expand.grid(
+  EDUCMX = levels(df$EDUCMX),  
+  URBAN = levels(df$URBAN)    
 )
 
-# Align with factor levels in df
-predict_data$EDUCMX <- factor(predict_data$EDUCMX, 
-                              levels = c("No Education", "Primary", "Secondary","Higher Education")) 
-predict_data$URBAN  <- factor(predict_data$URBAN,  levels = levels(df$URBAN))
+# Fix other variables
+new_data$log_INCEARN <- ifelse(new_data$URBAN == "Urban", 
+                               mean(df$log_INCEARN[df$URBAN == "Urban"], na.rm = TRUE),
+                               mean(df$log_INCEARN[df$URBAN == "Rural"], na.rm = TRUE))
+new_data$SEX <- as.integer(names(sort(table(df$SEX), decreasing = TRUE)[1]))
+new_data$AGE <- mean(df$AGE, na.rm = TRUE)
 
-# Predict probabilities with models
-predict_data$predicted_prob <- predict(
-  model_with_income, 
-  newdata = predict_data, 
-  type    = "response"
-)
+# Ensure factor level matching
+new_data$EDUCMX <- factor(new_data$EDUCMX, levels = levels(df$EDUCMX))
+new_data$URBAN <- factor(new_data$URBAN, levels = levels(df$URBAN))
 
-print(predict_data)
+# Calculation of predictive probability
+new_data$predicted_prob <- predict(model, newdata = new_data, type = "response")
 
-# Draw plot
-
-predict_data <- predict_data %>%
-  arrange(EDUCMX, URBAN)
-
-ggplot(predict_data, aes(x = EDUCMX, y = predicted_prob, color = URBAN, group = URBAN)) +
-  geom_line(size = 1.2) +
+# Plot predicted probabilities
+ggplot(new_data, aes(x = EDUCMX, y = predicted_prob, color = URBAN, group = URBAN)) +
   geom_point(size = 3) +
-  scale_y_continuous(labels = percent_format(accuracy = 1)) +  
-  labs(
-    title    = "Predicted Probability of Health Insurance Coverage",
-    subtitle = "Urban vs. Rural Comparison",
-    x        = "Education Level",
-    y        = "Predicted Probability",
-    color    = "Residence Type"
-  ) +
-  theme_minimal() +
-  theme(
-    plot.title      = element_text(hjust = 0.5, size = 16, face = "bold"),
-    plot.subtitle   = element_text(hjust = 0.5, size = 12, face = "italic")
-  )
+  geom_line(size = 1) +
+  labs(title = "Predicted Probability of Health Insurance Coverage",
+       x = "Education Level",
+       y = "Predicted Probability",
+       color = "Residence Type") +
+  theme_minimal()
 
+library(knitr)
+
+new_data <- new_data %>%
+  mutate(across(where(is.numeric), ~ round(.x, 4))) 
+
+# Generate HTML output
+kable(new_data, format = "html", digits = 4) %>%
+  kable_styling(full_width = FALSE) %>%
+  save_kable("predicted_probabilities.html")
 ```
